@@ -1,0 +1,45 @@
+# ==============================================================================
+# Cloud Compiler Unified Multi-Language Sandboxed Runtime Image
+# Supported Languages: C++ (GCC), Python 3, Java (OpenJDK 17), JavaScript (Node.js)
+# Base: Alpine Linux for minimal attack surface, fast boot, and compact image size
+# ==============================================================================
+
+FROM alpine:3.19
+
+# Prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install compilers, runtimes, and core build essentials
+RUN apk update && apk add --no-cache \
+    bash \
+    coreutils \
+    g++ \
+    gcc \
+    musl-dev \
+    libstdc++ \
+    python3 \
+    openjdk17-jdk \
+    nodejs \
+    && rm -rf /var/cache/apk/*
+
+# Create unprivileged sandbox user (UID 1000, GID 1000)
+RUN addgroup -g 1000 sandbox && \
+    adduser -D -u 1000 -G sandbox -s /bin/bash sandbox
+
+# Provision isolated workspace directory with strict sandbox ownership
+RUN mkdir -p /workspace /tmp && \
+    chown -R sandbox:sandbox /workspace /tmp && \
+    chmod 777 /workspace /tmp
+
+# Set sandbox working directory and default unprivileged user
+WORKDIR /workspace
+USER sandbox:sandbox
+
+# Set standard environment variables
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    JAVA_HOME=/usr/lib/jvm/java-17-openjdk \
+    PATH="/usr/lib/jvm/java-17-openjdk/bin:${PATH}"
+
+# Default shell
+CMD ["/bin/sh"]

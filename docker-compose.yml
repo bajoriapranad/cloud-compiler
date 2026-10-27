@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------------------------------------------
+  # Backend Execution Orchestrator (Express + TypeScript + Docker Engine API)
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cloud-compiler-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - COMPILE_TIMEOUT_MS=5000
+      - EXECUTION_TIMEOUT_MS=3000
+      - MAX_SOURCE_SIZE=102400
+      - MAX_STDIN_SIZE=32768
+      - MAX_OUTPUT_SIZE=65536
+      - DOCKER_SANDBOX_IMAGE=cloud-compiler-sandbox:latest
+      - DOCKER_MEMORY_LIMIT=128m
+      - DOCKER_CPU_LIMIT=0.5
+      - DOCKER_PIDS_LIMIT=64
+      - WORKSPACE_BASE_DIR=/tmp/cloud-compiler-workspaces
+    volumes:
+      # Expose host Docker daemon socket to backend orchestrator
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Shared host ephemeral workspace volume
+      - /tmp/cloud-compiler-workspaces:/tmp/cloud-compiler-workspaces
+    networks:
+      - cloud-compiler-net
+
+  # ----------------------------------------------------------------------------
+  # Frontend Web Client (React 18 + Monaco Editor served via Nginx)
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cloud-compiler-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - cloud-compiler-net
+
+networks:
+  cloud-compiler-net:
+    driver: bridge

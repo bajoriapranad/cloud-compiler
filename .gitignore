@@ -1,0 +1,37 @@
+# Node dependencies
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary execution workspaces
+temp/
+workspaces/
+scratch/
+*.tmp
+
+# SQLite Database
+*.db
+*.db-shm
+*.db-wal
+database/
+backend/database/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
